@@ -1,0 +1,46 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mongo-deployment
+  labels:
+    app: mongo
+spec:
+  replicas: 1 # how many Pods you want to create
+  selector:
+    matchLabels:
+      app: mongo
+  template:
+    metadata:
+      labels:
+        app: mongo
+    spec:
+      containers:
+      - name: mongodb
+        image: mongo:4.4.12 #https://hub.docker.com/_/mongo/tags?page=6
+        ports:
+        - containerPort: 27017 # See Connect to MongoDB from another Docker container @ https://hub.docker.com/_/mongo
+        env: #pass Environment Variables. https://hub.docker.com/_/mongo
+        - name: MONGO_INITDB_ROOT_USERNAME
+          valueFrom: #reference to Secret component
+            secretKeyRef: # tell to look the password in mongo-secret.yaml
+              name: mongo-secret # this is defined in mongo-secret.yaml
+              key: mongo-user # this is defined in mongo-secret.yaml
+        - name: MONGO_INITDB_ROOT_PASSWORD
+          valueFrom: #reference to Secret component
+            secretKeyRef: # tell to look the password in mongo-secret.yaml
+              name: mongo-secret # this is defined in mongo-secret.yaml
+              key: mongo-password # this is defined in mongo-secret.yaml
+# "---" is a separator, you can have multiple YAML configurations within 1 file
+# Service Configuration File
+---
+apiVersion: v1
+kind: Service #Service
+metadata:
+  name: mongo-service # An arbitrary name. this is defined or should be defined in mongo-config.yaml
+spec:
+  selector:
+    app: mongo # should match on the deplyment label
+  ports:
+  - protocol: TCP
+    port: 27017 # Service port. Can also be 80, 8080. Common standard to set the same as targetPort.
+    targetPort: 27017 #should be the same as containerPort. Tells Service to which port to forward the request to the Pods.

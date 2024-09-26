@@ -1,0 +1,13 @@
+#This configuration is to expose the external IP range 192.168.* to be able to access the webapp outside virtual box > my laptop
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  namespace: metallb-system
+  name: config
+data:
+  config: |
+    address-pools:
+      - name: default
+        protocol: layer2
+        addresses:
+          - 192.168.56.240-192.168.56.250
